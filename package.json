@@ -4,8 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build --turbopack",
-    "start": "next start",
+    "build": "next build",
+    "build:turbo": "next build --turbopack",
+    "start": "next start -H 0.0.0.0",
     "lint": "eslint",
     "lh:ci": "npx --yes @lhci/cli@0.14.0 autorun"
   },
