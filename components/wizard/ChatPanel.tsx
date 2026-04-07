@@ -24,39 +24,23 @@ export function ChatPanel({
   const busy = status === "submitted" || status === "streaming";
 
   return (
-    <div className="flex min-h-[420px] flex-1 flex-col rounded-lg border border-[#0A192F]/12 bg-white shadow-sm dark:border-white/10 dark:bg-[#0A192F]">
-      <header className="border-b border-[#0A192F]/10 px-4 py-3 dark:border-white/10">
-        <h1 className="text-xl font-bold tracking-tight text-[#0A192F] dark:text-[#F8F9FA]">
-          Plan wizard
-        </h1>
-        <p className="text-sm text-[#0A192F]/65 dark:text-[#F8F9FA]/60">
-          Tell us where you&apos;re going — we&apos;ll pull real catalogue rows
-          when needed.
-        </p>
-      </header>
-
+    <div className="flex min-h-[min(420px,50vh)] flex-1 flex-col overflow-hidden rounded-2xl border border-brand-navy/12 bg-white shadow-md dark:border-white/10 dark:bg-brand-navy">
       <div
-        className="min-h-0 flex-1 space-y-3 overflow-y-auto p-4"
+        className="min-h-0 flex-1 space-y-3 overflow-y-auto px-4 py-4 sm:px-5 sm:py-5"
         role="log"
         aria-live="polite"
       >
-        {messages.length === 0 ? (
-          <p className="text-sm text-[#0A192F]/60 dark:text-[#F8F9FA]/55">
-            Try: &quot;I need an eSIM for two weeks in Japan with about
-            10GB.&quot;
-          </p>
-        ) : null}
         {messages.map((message) => (
           <div
             key={message.id}
             className={
               message.role === "user"
-                ? "ml-8 rounded-lg bg-[#20B2AA]/15 px-3 py-2 text-[#0A192F] dark:text-[#F8F9FA]"
-                : "mr-8 rounded-lg bg-[#F8F9FA] px-3 py-2 text-[#0A192F] dark:bg-[#0A192F]/60 dark:text-[#F8F9FA]"
+                ? "ml-6 rounded-2xl bg-brand-teal/15 px-4 py-3 text-brand-navy dark:text-brand-paper sm:ml-10"
+                : "mr-6 rounded-2xl bg-brand-paper px-4 py-3 text-brand-navy dark:bg-white/10 dark:text-brand-paper sm:mr-10"
             }
           >
-            <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-[#C0392B]">
-              {message.role === "user" ? "You" : "Assistant"}
+            <div className="mb-1.5 text-[0.65rem] font-semibold uppercase tracking-wider text-brand-red">
+              {message.role === "user" ? "You" : "eSIMSeeker"}
             </div>
             {message.parts.map((part, index) => {
               if (part.type === "text") {
@@ -105,7 +89,7 @@ export function ChatPanel({
       </div>
 
       <form
-        className="border-t border-[#0A192F]/10 p-3 dark:border-white/10"
+        className="border-t border-brand-navy/10 p-3 dark:border-white/10 sm:p-4"
         onSubmit={(e) => {
           e.preventDefault();
           if (!input.trim() || busy) return;
@@ -113,20 +97,33 @@ export function ChatPanel({
           onInputChange("");
         }}
       >
-        <div className="flex flex-col gap-2 sm:flex-row">
-          <input
-            className="min-h-10 flex-1 rounded-lg border border-[#0A192F]/20 bg-[#F8F9FA] px-3 text-sm text-[#0A192F] placeholder:text-[#0A192F]/40 focus:border-[#20B2AA] focus:outline-none focus:ring-1 focus:ring-[#20B2AA] dark:border-white/15 dark:bg-[#0A192F] dark:text-[#F8F9FA]"
-            placeholder="Where are you travelling?"
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
+          <label className="sr-only" htmlFor="wizard-chat-input">
+            Your reply
+          </label>
+          <textarea
+            id="wizard-chat-input"
+            className="min-h-[2.75rem] flex-1 resize-none rounded-xl border border-brand-navy/20 bg-brand-paper px-3 py-2.5 text-sm text-brand-navy placeholder:text-brand-navy/45 focus:border-brand-teal focus:outline-none focus:ring-2 focus:ring-brand-teal/30 dark:border-white/15 dark:bg-brand-navy dark:text-brand-paper dark:placeholder:text-brand-paper/45"
+            placeholder="e.g. Japan, Italy, or New York…"
+            rows={2}
             value={input}
             onChange={(e) => onInputChange(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                if (!input.trim() || busy) return;
+                sendMessage({ text: input });
+                onInputChange("");
+              }
+            }}
             disabled={busy}
-            aria-label="Message"
+            aria-label="Your reply"
           />
-          <div className="flex gap-2">
+          <div className="flex shrink-0 gap-2 sm:flex-col sm:gap-2">
             {busy ? (
               <button
                 type="button"
-                className="rounded-lg border border-[#C0392B]/40 px-4 py-2 text-sm font-medium text-[#C0392B] hover:bg-[#C0392B]/10"
+                className="rounded-xl border border-brand-red/40 px-4 py-2.5 text-sm font-medium text-brand-red hover:bg-brand-red/10"
                 onClick={() => stop()}
               >
                 Stop
@@ -135,7 +132,7 @@ export function ChatPanel({
             <button
               type="submit"
               disabled={busy || !input.trim()}
-              className="rounded-lg bg-[#C0392B] px-4 py-2 text-sm font-semibold text-white shadow-sm disabled:opacity-50"
+              className="rounded-xl bg-brand-red px-4 py-2.5 text-sm font-semibold text-white shadow-sm disabled:opacity-50"
             >
               Send
             </button>

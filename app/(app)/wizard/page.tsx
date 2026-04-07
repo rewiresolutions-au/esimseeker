@@ -17,7 +17,7 @@ export default function WizardPage() {
       <main
         id="site-main"
         tabIndex={-1}
-        className="min-h-screen bg-[#F8F9FA] text-[#0A192F] dark:bg-[#0A192F] dark:text-[#F8F9FA]"
+        className="flex min-h-screen flex-col bg-[#F8F9FA] text-[#0A192F] dark:bg-[#0A192F] dark:text-[#F8F9FA]"
       >
         <WizardClient />
       </main>
