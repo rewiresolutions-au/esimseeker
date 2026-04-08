@@ -1,36 +1,37 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# eSIMSeeker Cursor Bundle
 
-## Getting Started
+Welcome to the complete design and specification bundle for **eSIMSeeker** — an AI-powered eSIM comparison platform.
 
-First, run the development server:
+This package contains everything you need to build the site from scratch using Cursor.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## What's Inside
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+1. **`.cursorrules`**
+   - The master instruction file for Cursor. It defines the tech stack, coding standards, and architectural rules.
+   - **Action:** Drop this into the root of your project folder.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+2. **`docs/`**
+   - `DESIGN.md` & `.pdf`: The comprehensive site architecture, component library, brand tokens, and SEO rules.
+   - `CHAT_SPEC.md` & `.pdf`: The detailed logic, UI states, and conversational flow for the AI Wizard interface.
+   - `CURSOR_CONTEXT.md` & `.pdf`: The deployment plan, database schema, AI prompt, and 6-week sprint roadmap.
+   - **Action:** Add these files to your project and reference them in Cursor (e.g., `@DESIGN.md`).
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+3. **`wireframes/`**
+   - 10 detailed UX wireframes covering every page and AI chat state (desktop and mobile).
+   - **Action:** Keep these handy and drag them into Cursor's chat window when asking it to build a specific component.
 
-## Learn More
+4. **`brand/`**
+   - The official eSIMSeeker logo set (Primary, Dark Mode, and Icon).
+   - The Brand Guidelines Reference Sheet (colours, typography, usage).
+   - **Action:** Add the logos to your `public/` folder.
 
-To learn more about Next.js, take a look at the following resources:
+## Getting Started in Cursor
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. Create a new Next.js project.
+2. Copy all files from this bundle into your project directory.
+3. Open Cursor's Chat panel and type:
+   > `@DESIGN.md Let's start by setting up the Tailwind config and building the <Navbar> and <Footer> components.`
+4. For the AI Wizard, type:
+   > `@CHAT_SPEC.md @DESIGN.md I need to build the ChatPanel and PlanCard components. Here is the wireframe for reference.` (Attach `wireframe_chat_02_results_and_comparison.png`).
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Happy building!
