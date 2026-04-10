@@ -1,0 +1,31 @@
+import { PlanCard } from "@/components/wizard/PlanCard";
+import type { Plan } from "@/lib/types/plans";
+
+type ResultsPanelProps = {
+  plans: Plan[];
+};
+
+export const ResultsPanel = ({ plans }: ResultsPanelProps) => {
+  if (plans.length === 0) {
+    return (
+      <aside className="rounded-2xl border border-brand-navy/10 bg-white p-5">
+        <h2 className="text-lg font-bold text-brand-navy">Top Matches</h2>
+        <p className="mt-2 text-sm text-brand-navy/70">
+          Results appear after we collect destination, trip duration, and data usage.
+        </p>
+      </aside>
+    );
+  }
+
+  return (
+    <aside className="space-y-4 rounded-2xl border border-brand-navy/10 bg-white p-5">
+      <h2 className="text-lg font-bold text-brand-navy">Your Top 3 Plans</h2>
+      {plans.slice(0, 3).map((plan) => (
+        <PlanCard key={plan.id} plan={plan} />
+      ))}
+      <a href="#" className="inline-flex text-sm font-semibold text-brand-teal hover:underline">
+        See all {plans.length} plans
+      </a>
+    </aside>
+  );
+};
