@@ -1,19 +1,23 @@
-const providers = ["Airalo", "Holafly", "Nomad", "eSIM Go", "Maya Mobile"];
+import { AiraloMark, EsimGoMark, HolaflyMark, NomadMark } from "@/components/marketing/ProviderLogoMarks";
+
+const rows = [
+  { Mark: AiraloMark, key: "airalo" },
+  { Mark: HolaflyMark, key: "holafly" },
+  { Mark: NomadMark, key: "nomad" },
+  { Mark: EsimGoMark, key: "esimgo" },
+] as const;
 
 export const ProviderStrip = () => {
   return (
-    <div className="mt-6">
-      <p className="text-center text-sm font-medium text-brand-slate/90">Comparing plans from:</p>
-      <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
-        {providers.slice(0, 4).map((provider) => (
-          <span
-            key={provider}
-            className="rounded-md border border-white/20 bg-white/10 px-3 py-2 text-center text-sm font-semibold text-brand-slate"
-          >
-            {provider}
-          </span>
+    <div className="mt-8">
+      <p className="text-center text-sm font-medium text-brand-navy/65">Comparing plans from</p>
+      <ul className="mt-4 flex flex-wrap items-center justify-center gap-x-10 gap-y-5 md:gap-x-14">
+        {rows.map(({ Mark, key }) => (
+          <li key={key}>
+            <Mark className="h-6 w-auto text-brand-navy opacity-55 grayscale transition duration-200 hover:opacity-90 hover:grayscale-0 md:h-7" />
+          </li>
         ))}
-      </div>
+      </ul>
     </div>
   );
 };

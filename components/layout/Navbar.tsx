@@ -33,7 +33,7 @@ export const Navbar = () => {
   return (
     <header className="sticky top-0 z-40 border-b border-brand-gray-mid/80 bg-brand-gray-light/95 backdrop-blur-sm">
       <div className="relative mx-auto flex h-16 w-full max-w-7xl items-center px-4">
-        <div className="flex shrink-0 items-center md:w-[200px]">
+        <div className="flex min-w-0 max-w-[55%] shrink-0 items-center sm:max-w-none md:min-w-[200px] md:max-w-[280px]">
           <EsimSeekerLogo variant="onLight" size="nav" priority />
         </div>
 
@@ -52,7 +52,7 @@ export const Navbar = () => {
           ))}
         </nav>
 
-        <div className="ml-auto flex items-center gap-2 md:w-[200px] md:justify-end">
+        <div className="ml-auto flex shrink-0 items-center gap-2 md:min-w-[140px] md:justify-end">
           <button
             type="button"
             className="inline-flex h-10 w-10 items-center justify-center rounded-lg text-brand-navy md:hidden"
