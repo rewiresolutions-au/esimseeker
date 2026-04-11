@@ -11,7 +11,7 @@ export const CountryGrid = ({ countries }: CountryGridProps) => {
       {countries.map((country) => (
         <Link
           key={country.slug}
-          href={`/esim/${country.slug}`}
+          href={`/destinations/${country.slug}`}
           className="rounded-xl border border-brand-navy/30 bg-white p-4 transition hover:-translate-y-0.5 hover:border-brand-teal/60"
         >
           <p className="text-2xl">{country.flagEmoji}</p>

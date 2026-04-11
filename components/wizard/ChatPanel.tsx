@@ -6,9 +6,9 @@ import {
   DATA_PERSONA_CHIPS,
   deriveIntent,
   intentProgress,
-  nextAssistantPrompt,
   type ChatMessage,
 } from "@/lib/ai/wizard-state";
+import { COUNTRIES } from "@/lib/data/countries";
 import type { Plan, WizardIntent } from "@/lib/types/plans";
 
 type ChatPanelProps = {
@@ -19,6 +19,11 @@ type ChatPanelProps = {
 const createId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
 const destinationSuggestions = ["Japan", "Thailand", "Europe", "United States"];
+
+type NdjsonEvent =
+  | { type: "text"; delta: string }
+  | { type: "done"; text: string; plans: Plan[]; intent: WizardIntent }
+  | { type: "error"; message: string };
 
 export const ChatPanel = ({ initialDestination, onResultsChange }: ChatPanelProps) => {
   const [intent, setIntent] = useState<WizardIntent>(
@@ -36,10 +41,15 @@ export const ChatPanel = ({ initialDestination, onResultsChange }: ChatPanelProp
   ]);
   const [plans, setPlans] = useState<Plan[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [streamPreview, setStreamPreview] = useState("");
   const messageEndRef = useRef<HTMLDivElement | null>(null);
 
-  const progress = useMemo(() => intentProgress(intent), [intent]);
-  const showInlineCards = plans.length > 0;
+  const destinationLabel = useMemo(() => {
+    if (!intent.destination) return undefined;
+    return COUNTRIES.find((c) => c.slug === intent.destination)?.name;
+  }, [intent.destination]);
+
+  const progress = useMemo(() => intentProgress(intent, destinationLabel), [intent, destinationLabel]);
 
   useEffect(() => {
     onResultsChange?.(plans);
@@ -47,21 +57,19 @@ export const ChatPanel = ({ initialDestination, onResultsChange }: ChatPanelProp
 
   useEffect(() => {
     messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, plans]);
-
-  const pushAssistant = (content: string) => {
-    setMessages((prev) => [...prev, { id: createId(), role: "assistant", content }]);
-  };
+  }, [messages, plans, streamPreview]);
 
   const submitUserMessage = async (rawValue: string) => {
     const trimmed = rawValue.trim();
     if (!trimmed) return;
 
+    const priorHistory = messages;
     setMessages((prev) => [...prev, { id: createId(), role: "user", content: trimmed }]);
     const nextIntent = deriveIntent(intent, trimmed);
     setIntent(nextIntent);
     setInput("");
     setIsLoading(true);
+    setStreamPreview("");
 
     try {
       const response = await fetch("/api/chat", {
@@ -69,57 +77,135 @@ export const ChatPanel = ({ initialDestination, onResultsChange }: ChatPanelProp
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           message: trimmed,
-          history: messages.slice(-8).map((message) => ({
+          history: priorHistory.slice(-8).map((message) => ({
             role: message.role,
             content: message.content,
           })),
         }),
       });
 
+      const contentType = response.headers.get("content-type") ?? "";
+
       if (!response.ok) {
-        pushAssistant("I hit a temporary issue fetching plans. Please try again.");
+        const errJson = (await response.json().catch(() => null)) as { error?: string } | null;
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: createId(),
+            role: "assistant",
+            content: errJson?.error ?? "Something went wrong. Please try again.",
+          },
+        ]);
         return;
       }
 
-      const payload = (await response.json()) as {
-        reply?: string;
-        plans?: Plan[];
-        intent?: WizardIntent;
-      };
-
-      const mergedIntent = {
-        ...nextIntent,
-        ...(payload.intent ?? {}),
-      };
-      setIntent(mergedIntent);
-
-      if (payload.plans && payload.plans.length > 0) {
-        setPlans(payload.plans);
-      } else if (!(payload.intent?.destination && payload.intent?.durationDays && payload.intent?.dataPersona)) {
-        setPlans([]);
+      if (!contentType.includes("ndjson") && !contentType.includes("json")) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: createId(),
+            role: "assistant",
+            content: "Unexpected response from the assistant. Please try again.",
+          },
+        ]);
+        return;
       }
 
-      if (payload.reply) {
-        pushAssistant(payload.reply);
-      } else {
-        pushAssistant(nextAssistantPrompt(mergedIntent));
+      const reader = response.body?.getReader();
+      if (!reader) {
+        setMessages((prev) => [
+          ...prev,
+          { id: createId(), role: "assistant", content: "No response stream. Please try again." },
+        ]);
+        return;
+      }
+
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let assembled = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() ?? "";
+
+        for (const line of lines) {
+          if (!line.trim()) continue;
+          let evt: NdjsonEvent;
+          try {
+            evt = JSON.parse(line) as NdjsonEvent;
+          } catch {
+            continue;
+          }
+
+          if (evt.type === "text") {
+            assembled += evt.delta;
+            setStreamPreview(assembled);
+          } else if (evt.type === "error") {
+            setStreamPreview("");
+            setMessages((prev) => [
+              ...prev,
+              { id: createId(), role: "assistant", content: evt.message },
+            ]);
+            setIsLoading(false);
+            return;
+          } else if (evt.type === "done") {
+            setStreamPreview("");
+            const mergedIntent = {
+              ...nextIntent,
+              ...evt.intent,
+            };
+            setIntent(mergedIntent);
+
+            if (evt.plans.length > 0) {
+              setPlans(evt.plans);
+            } else if (!mergedIntent.destination || !mergedIntent.durationDays || !mergedIntent.dataPersona) {
+              setPlans([]);
+            }
+
+            const text = evt.text.trim() || "Here is what I found for your trip.";
+            setMessages((prev) => [
+              ...prev,
+              {
+                id: createId(),
+                role: "assistant",
+                content: text,
+                plans: evt.plans.length > 0 ? evt.plans : undefined,
+              },
+            ]);
+          }
+        }
       }
     } catch {
-      pushAssistant("I hit a network issue. Please try again in a moment.");
+      setStreamPreview("");
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: createId(),
+          role: "assistant",
+          content: "I hit a network issue. Please try again in a moment.",
+        },
+      ]);
     } finally {
       setIsLoading(false);
+      setStreamPreview("");
     }
   };
 
   return (
-    <section className="flex h-full min-h-[68vh] flex-col rounded-2xl border border-brand-navy/10 bg-white">
-      <div className="border-b border-brand-navy/10 px-4 py-3">
-        <div className="flex gap-2 overflow-x-auto">
+    <section className="flex h-full min-h-[72vh] flex-col rounded-2xl border border-brand-navy/10 bg-white shadow-sm">
+      <div className="border-b border-brand-gray-mid/80 bg-brand-gray-light/50 px-4 py-3">
+        <p className="mb-2 text-xs font-medium uppercase tracking-wide text-brand-navy/50">
+          What we understand so far
+        </p>
+        <div className="flex gap-2 overflow-x-auto pb-0.5">
           {progress.map((step) => (
             <span
               key={step.label}
-              className={`whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium ${
-                step.done ? "bg-brand-teal/15 text-brand-teal" : "bg-brand-paper text-brand-navy/60"
+              className={`whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-medium ${
+                step.done ? "bg-brand-teal/15 text-brand-teal" : "bg-white text-brand-navy/55 ring-1 ring-brand-navy/10"
               }`}
             >
               {step.done ? "✓ " : "○ "}
@@ -129,41 +215,62 @@ export const ChatPanel = ({ initialDestination, onResultsChange }: ChatPanelProp
         </div>
       </div>
 
-      <div className="flex-1 space-y-3 overflow-y-auto px-4 py-4">
+      <div className="flex flex-1 flex-col gap-3 overflow-y-auto px-4 py-4">
         {messages.map((message) => (
           <div
             key={message.id}
-            className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm ${
-              message.role === "assistant"
-                ? "bg-brand-paper text-brand-navy"
-                : "ml-auto bg-brand-navy text-white"
-            }`}
+            className={`flex w-full flex-col gap-3 ${message.role === "user" ? "items-end" : "items-start"}`}
           >
-            {message.content}
+            <div
+              className={`max-w-[min(100%,520px)] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
+                message.role === "assistant"
+                  ? "bg-brand-gray-light text-brand-navy"
+                  : "bg-brand-navy text-white"
+              }`}
+            >
+              {message.content}
+            </div>
+            {message.role === "assistant" && message.plans && message.plans.length > 0 ? (
+              <div className="grid w-full max-w-full gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+                {message.plans.map((plan) => (
+                  <PlanCard key={plan.id} plan={plan} />
+                ))}
+              </div>
+            ) : null}
           </div>
         ))}
 
-        {/* Mobile uses inline result cards in chat flow. */}
-        {showInlineCards ? (
-          <div className="space-y-3 lg:hidden">
-            {plans.map((plan) => (
-              <PlanCard key={plan.id} plan={plan} />
-            ))}
+        {streamPreview ? (
+          <div className="flex w-full flex-col items-start">
+            <div className="max-w-[min(100%,520px)] rounded-2xl bg-brand-gray-light px-4 py-3 text-sm leading-relaxed text-brand-navy">
+              {streamPreview}
+              <span className="ml-0.5 inline-block h-4 w-0.5 animate-pulse bg-brand-navy/40 align-middle" />
+            </div>
           </div>
         ) : null}
+
+        {isLoading && !streamPreview ? (
+          <div className="flex justify-start">
+            <div className="rounded-2xl bg-brand-gray-light px-4 py-3 text-sm text-brand-navy/70">
+              Thinking…
+            </div>
+          </div>
+        ) : null}
+
         <div ref={messageEndRef} />
       </div>
 
-      <div className="border-t border-brand-navy/10 bg-white px-4 py-3">
+      <div className="border-t border-brand-gray-mid/80 bg-white px-4 py-3">
         <div className="mb-2 flex gap-2 overflow-x-auto">
           {!intent.destination
             ? destinationSuggestions.map((item) => (
                 <button
                   key={item}
+                  type="button"
                   onClick={() => {
                     void submitUserMessage(item);
                   }}
-                  className="whitespace-nowrap rounded-full border border-brand-navy/15 px-3 py-1 text-xs text-brand-navy"
+                  className="whitespace-nowrap rounded-full border border-brand-navy/15 bg-white px-3 py-1.5 text-xs font-medium text-brand-navy transition hover:bg-brand-gray-light"
                 >
                   {item}
                 </button>
@@ -172,31 +279,31 @@ export const ChatPanel = ({ initialDestination, onResultsChange }: ChatPanelProp
               ? DATA_PERSONA_CHIPS.map((item) => (
                   <button
                     key={item}
+                    type="button"
                     onClick={() => {
                       void submitUserMessage(item);
                     }}
-                    className="whitespace-nowrap rounded-full border border-brand-navy/15 px-3 py-1 text-xs text-brand-navy"
+                    className="whitespace-nowrap rounded-full border border-brand-navy/15 bg-white px-3 py-1.5 text-xs font-medium text-brand-navy transition hover:bg-brand-gray-light"
                   >
                     {item}
                   </button>
                 ))
-              : ["Compare top 2", "Start new search"].map((item) => (
+              : ["Start new search"].map((item) => (
                   <button
                     key={item}
+                    type="button"
                     onClick={() => {
-                      if (item.includes("Start")) {
-                        setIntent({});
-                        setPlans([]);
-                        setMessages([
-                          {
-                            id: createId(),
-                            role: "assistant",
-                            content: "New search started. Where are you flying to next?",
-                          },
-                        ]);
-                      }
+                      setIntent({});
+                      setPlans([]);
+                      setMessages([
+                        {
+                          id: createId(),
+                          role: "assistant",
+                          content: "New search started. Where are you flying to next?",
+                        },
+                      ]);
                     }}
-                    className="whitespace-nowrap rounded-full border border-brand-navy/15 px-3 py-1 text-xs text-brand-navy"
+                    className="whitespace-nowrap rounded-full border border-brand-navy/15 bg-white px-3 py-1.5 text-xs font-medium text-brand-navy transition hover:bg-brand-gray-light"
                   >
                     {item}
                   </button>
@@ -212,16 +319,18 @@ export const ChatPanel = ({ initialDestination, onResultsChange }: ChatPanelProp
               }
             }}
             placeholder="Tell me about your trip"
-            className="h-11 flex-1 rounded-lg border border-brand-navy/20 px-3 text-sm"
+            disabled={isLoading}
+            className="h-11 flex-1 rounded-lg border border-brand-navy/20 bg-white px-3 text-sm text-brand-navy placeholder:text-brand-navy/40"
           />
           <button
+            type="button"
             onClick={() => {
               void submitUserMessage(input);
             }}
             disabled={isLoading}
-            className="inline-flex h-11 items-center rounded-lg bg-brand-red px-4 text-sm font-semibold text-white"
+            className="inline-flex h-11 shrink-0 items-center rounded-lg bg-brand-red px-4 text-sm font-semibold text-white transition enabled:hover:bg-brand-red/90 disabled:opacity-60"
           >
-            {isLoading ? "Thinking..." : "Send"}
+            {isLoading ? "Sending…" : "Send"}
           </button>
         </div>
       </div>
