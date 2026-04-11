@@ -3,9 +3,17 @@ type PageHeroProps = {
   title: string;
   description: string;
   children?: React.ReactNode;
+  /** Override spacing above optional children (default mt-6). Use e.g. mt-3 to sit closer to description. */
+  childrenWrapperClassName?: string;
 };
 
-export const PageHero = ({ breadcrumb, title, description, children }: PageHeroProps) => {
+export const PageHero = ({
+  breadcrumb,
+  title,
+  description,
+  children,
+  childrenWrapperClassName = "mt-6",
+}: PageHeroProps) => {
   return (
     <section className="rounded-2xl border border-brand-navy/10 bg-white p-6 md:p-8">
       {breadcrumb ? (
@@ -17,7 +25,7 @@ export const PageHero = ({ breadcrumb, title, description, children }: PageHeroP
         {title}
       </h1>
       <p className="mt-3 max-w-3xl text-brand-navy/75">{description}</p>
-      {children ? <div className="mt-6">{children}</div> : null}
+      {children ? <div className={childrenWrapperClassName}>{children}</div> : null}
     </section>
   );
 };

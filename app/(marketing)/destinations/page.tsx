@@ -4,6 +4,7 @@ import { RegionCards } from "@/components/destinations/RegionCards";
 import { Footer } from "@/components/layout/Footer";
 import { Navbar } from "@/components/layout/Navbar";
 import { PageHero } from "@/components/layout/PageHero";
+import { SailyWidgetBanner } from "@/components/marketing/SailyWidgetBanner";
 import { REGIONS } from "@/lib/data/countries";
 
 export const generateMetadata = async (): Promise<Metadata> => {
@@ -25,6 +26,7 @@ export default function DestinationsPage() {
           breadcrumb="Home / Destinations"
         />
         <DestinationExplorer />
+        <SailyWidgetBanner variant="b" />
         <section>
           <h2 className="text-2xl font-bold text-brand-navy">Popular Regions</h2>
           <div className="mt-4">

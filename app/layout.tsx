@@ -10,6 +10,10 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "eSIMSeeker",
   description: "Stay Connected. Anywhere. Instantly.",
+  icons: {
+    icon: "/brand/icon_square.png",
+    apple: "/brand/icon_square.png",
+  },
 };
 
 export default function RootLayout({

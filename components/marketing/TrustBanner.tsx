@@ -4,12 +4,12 @@ export const TrustBanner = () => {
       <p className="text-sm font-semibold uppercase tracking-wide text-brand-teal">
         Trusted by travelers
       </p>
-      <p className="mt-2 text-2xl font-bold text-brand-navy">Trusted by 10,000+ travelers.</p>
+      <p className="mt-2 text-2xl font-bold text-brand-navy">Trusted by 10,000+ travelers ★★★★★</p>
       <p className="mt-3 text-brand-navy/75">
         Rated 4.8/5 for speed, transparency, and easy side-by-side plan comparisons.
       </p>
-      <p className="mt-4 text-sm italic text-brand-navy/70">
-        &quot;I found a cheaper 14-day plan in less than a minute.&quot;
+      <p className="mt-4 text-base italic text-brand-navy/70">
+        &quot;Saved me hours of research. The perfect eSIM for my trip to Tokyo.&quot; - Sarah K.
       </p>
     </section>
   );

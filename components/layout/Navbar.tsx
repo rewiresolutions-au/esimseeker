@@ -1,7 +1,9 @@
 import Link from "next/link";
+import { EsimSeekerLogo } from "@/components/brand/EsimSeekerLogo";
 
 const navLinks = [
   { href: "/destinations", label: "Destinations" },
+  { href: "/#how-it-works", label: "How It Works" },
   { href: "/about", label: "About" },
   { href: "/faq", label: "FAQ" },
 ];
@@ -10,9 +12,7 @@ export const Navbar = () => {
   return (
     <header className="sticky top-0 z-40 border-b border-brand-navy/10 bg-brand-paper/95 backdrop-blur-sm">
       <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-4">
-        <Link href="/" className="text-lg font-bold tracking-tight text-brand-navy">
-          eSIMSeeker
-        </Link>
+        <EsimSeekerLogo variant="onLight" size="nav" priority />
         <nav className="hidden items-center gap-6 md:flex">
           {navLinks.map((link) => (
             <Link

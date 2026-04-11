@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { EsimSeekerLogo } from "@/components/brand/EsimSeekerLogo";
 
 const navLinks = [
   { href: "/", label: "Home" },
@@ -15,10 +16,10 @@ const legalLinks = [
 
 export const Footer = () => {
   return (
-    <footer className="mt-16 bg-brand-navy py-12 text-brand-slate">
+    <footer className="mt-16 bg-gradient-to-br from-[#08162a] to-[#0f2144] py-12 text-brand-slate">
       <div className="mx-auto grid w-full max-w-7xl gap-10 px-4 md:grid-cols-4">
         <div>
-          <p className="text-lg font-bold text-white">eSIMSeeker</p>
+          <EsimSeekerLogo variant="onDark" size="footer" />
           <p className="mt-3 text-sm text-brand-slate/90">
             Stay Connected. Anywhere. Instantly.
           </p>
@@ -48,11 +49,15 @@ export const Footer = () => {
 
         <div>
           <p className="text-sm font-semibold uppercase tracking-wide text-white">Newsletter</p>
-          <p className="mt-3 text-sm text-brand-slate/90">
-            Get destination data price drops and new provider updates.
-          </p>
-          <div className="mt-3 rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-sm">
-            hello@esimseeker.com
+          <p className="mt-3 text-sm text-brand-slate/90">Subscribe for your email address</p>
+          <div className="mt-3 space-y-2">
+            <input
+              className="h-10 w-full rounded-lg border border-white/20 bg-white/10 px-3 text-sm text-white placeholder:text-brand-slate/70"
+              placeholder="Your email address"
+            />
+            <button className="h-10 w-full rounded-full bg-brand-red text-sm font-semibold text-white">
+              subscribe
+            </button>
           </div>
         </div>
       </div>

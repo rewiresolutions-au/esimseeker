@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { AIBanner } from "@/components/marketing/AIBanner";
@@ -98,6 +99,12 @@ export default async function CountryPage({ params }: CountryPageProps) {
               4G/5G coverage
             </span>
           </div>
+          <Link
+            href={`/wizard?destination=${encodeURIComponent(country.name)}`}
+            className="mt-4 inline-flex rounded-full bg-brand-red px-6 py-3 text-sm font-semibold text-white"
+          >
+            Let AI Pick My Plan
+          </Link>
         </PageHero>
 
         <CountryPlansSection countrySlug={country.slug} />

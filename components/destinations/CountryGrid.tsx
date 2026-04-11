@@ -12,11 +12,11 @@ export const CountryGrid = ({ countries }: CountryGridProps) => {
         <Link
           key={country.slug}
           href={`/esim/${country.slug}`}
-          className="rounded-xl border border-brand-navy/10 bg-white p-4 transition hover:-translate-y-0.5 hover:border-brand-teal/40"
+          className="rounded-xl border border-brand-navy/30 bg-white p-4 transition hover:-translate-y-0.5 hover:border-brand-teal/60"
         >
-          <p className="text-xl">{country.flagEmoji}</p>
-          <p className="mt-2 font-semibold text-brand-navy">{country.name}</p>
-          <p className="text-sm text-brand-navy/70">{country.planCount} plans</p>
+          <p className="text-2xl">{country.flagEmoji}</p>
+          <p className="mt-2 text-xl font-bold leading-tight text-brand-navy">{country.name}</p>
+          <p className="mt-1 text-sm text-brand-navy/70">{country.planCount} plans</p>
         </Link>
       ))}
     </div>
