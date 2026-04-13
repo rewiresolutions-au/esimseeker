@@ -239,7 +239,8 @@ export const getPlansByCountryFromDb = async (
       .eq("country_iso", country.isoCode);
 
     if (options?.durationDays) {
-      query = query.eq("validity_days", options.durationDays);
+      // A plan is valid if it covers at least the requested trip length.
+      query = query.gte("validity_days", options.durationDays);
     }
     if (options?.minDataGb) {
       query = query.gte("data_gb", options.minDataGb);
@@ -280,17 +281,19 @@ export const getPlansForPersonaFromDb = async (
   if (!isSupabaseConfigured) {
     return getMockPlansForPersona(countrySlug, durationDays, dataPersona);
   }
-  const minDataGbByPersona: Record<DataPersona, number> = {
-    Budget: 3,
-    Balanced: 5,
-    Heavy: 10,
-    Unlimited: 20,
-  };
-  return getPlansByCountryFromDb(countrySlug, {
+  const plans = await getPlansByCountryFromDb(countrySlug, {
     durationDays,
-    minDataGb: minDataGbByPersona[dataPersona],
     sortBy: dataPersona === "Budget" ? "price-asc" : "rating-desc",
-  }).then((plans) => plans.slice(0, 3));
+  });
+
+  const filtered = plans.filter((plan) => {
+    if (dataPersona === "Budget") return plan.dataGb <= 5;
+    if (dataPersona === "Balanced") return plan.dataGb > 5 && plan.dataGb <= 15;
+    if (dataPersona === "Heavy") return plan.dataGb > 15 && plan.dataGb < 999;
+    return plan.dataGb === 999;
+  });
+
+  return filtered.slice(0, 3);
 };
 
 export const resolveCountrySlugFromInput = async (destination: string) => {
@@ -302,6 +305,27 @@ export const resolveCountrySlugFromInput = async (destination: string) => {
     countries.find((country) => country.isoCode.toLowerCase() === normalized);
 
   if (direct) return direct.slug;
+
+  if (isSupabaseConfigured) {
+    try {
+      const supabase = createSupabaseServerClient();
+      // Case-insensitive fallback for natural-language destination input.
+      const { data } = await supabase
+        .from("countries")
+        .select("name, iso_code")
+        .ilike("name", `%${destination.trim()}%`)
+        .limit(1)
+        .maybeSingle();
+
+      if (data) {
+        const name = (data as { name: string }).name;
+        return slugify(name);
+      }
+    } catch {
+      // Fall through to null and let caller handle "country not found".
+    }
+  }
+
   return null;
 };
 

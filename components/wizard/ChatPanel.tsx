@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import ReactMarkdown from "react-markdown";
 import { PlanCard } from "@/components/wizard/PlanCard";
 import {
   DATA_PERSONA_CHIPS,
@@ -77,6 +78,7 @@ export const ChatPanel = ({ initialDestination, onResultsChange }: ChatPanelProp
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           message: trimmed,
+          intent: nextIntent,
           history: priorHistory.slice(-8).map((message) => ({
             role: message.role,
             content: message.content,
@@ -228,7 +230,22 @@ export const ChatPanel = ({ initialDestination, onResultsChange }: ChatPanelProp
                   : "bg-brand-navy text-white"
               }`}
             >
-              {message.content}
+              {message.role === "assistant" ? (
+                <ReactMarkdown
+                  components={{
+                    h3: ({ children }) => <h3 className="mt-2 text-base font-semibold">{children}</h3>,
+                    p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+                    ul: ({ children }) => <ul className="mb-2 list-disc pl-5 last:mb-0">{children}</ul>,
+                    ol: ({ children }) => <ol className="mb-2 list-decimal pl-5 last:mb-0">{children}</ol>,
+                    li: ({ children }) => <li className="mb-1">{children}</li>,
+                    strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+                  }}
+                >
+                  {message.content}
+                </ReactMarkdown>
+              ) : (
+                message.content
+              )}
             </div>
             {message.role === "assistant" && message.plans && message.plans.length > 0 ? (
               <div className="grid w-full max-w-full gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">

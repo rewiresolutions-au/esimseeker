@@ -16,6 +16,13 @@ const messageSchema = z.object({
 const requestSchema = z.object({
   message: z.string().min(1),
   history: z.array(messageSchema).max(24).optional(),
+  intent: z
+    .object({
+      destination: z.string().optional(),
+      durationDays: z.number().int().min(1).max(365).optional(),
+      dataPersona: z.enum(["Budget", "Balanced", "Heavy", "Unlimited"]).optional(),
+    })
+    .optional(),
 });
 
 const SYSTEM_PROMPT = `You are eSIMSeeker AI, a concise travel connectivity assistant.
@@ -53,7 +60,7 @@ export async function POST(request: NextRequest) {
   }
 
   let capturedPlans: Plan[] = [];
-  let capturedIntent: WizardIntent = {};
+  let capturedIntent: WizardIntent = parsed.data.intent ?? {};
 
   const getPlans = tool({
     description:
@@ -106,12 +113,23 @@ export async function POST(request: NextRequest) {
     content: message.content,
   }));
 
+  const knownIntent = parsed.data.intent ?? {};
+  const intentMemory = [
+    `Known destination: ${knownIntent.destination ?? "unknown"}`,
+    `Known durationDays: ${knownIntent.durationDays ?? "unknown"}`,
+    `Known dataPersona: ${knownIntent.dataPersona ?? "unknown"}`,
+  ].join("\n");
+
   const result = streamText({
     model: openai(process.env.OPENAI_MODEL ?? "gpt-4o"),
     system: SYSTEM_PROMPT,
     temperature: 0.3,
     stopWhen: stepCountIs(8),
     messages: [
+      {
+        role: "system" as const,
+        content: `Persist and reuse this extracted state. Do not ask for known fields again.\n${intentMemory}`,
+      },
       ...historyMessages,
       { role: "user" as const, content: parsed.data.message },
     ],

@@ -2,20 +2,20 @@ import Image from "next/image";
 import Link from "next/link";
 
 const SRC = {
-  onLight: "/brand/logo_primary_light.png",
+  onLight: "/brand/esimseeker_logo_final.png",
   onDark: "/brand/logo_dark_mode.png",
 } as const;
 
 /** Intrinsic dimensions from source PNG (IHDR); layout uses width-first so the wordmark stays legible. */
-const INTRINSIC = { width: 2528, height: 1696 };
+const INTRINSIC = { width: 1024, height: 683 };
 
 const sizeClasses = {
   /** Main site header — width-led so the logo is not shrunk to a short strip */
-  nav: "h-auto w-[168px] sm:w-[188px] md:w-[220px]",
+  nav: "h-auto w-[180px] sm:w-[196px] md:w-[208px]",
   /** Wizard top bar — slightly tighter */
-  compact: "h-auto w-[140px] md:w-[168px]",
+  compact: "h-auto w-[150px] md:w-[170px]",
   /** Footer column */
-  footer: "h-auto w-[180px] md:w-[220px]",
+  footer: "h-auto w-[180px] md:w-[208px]",
 } as const;
 
 export type EsimSeekerLogoSize = keyof typeof sizeClasses;
@@ -43,7 +43,7 @@ export const EsimSeekerLogo = ({
       width={INTRINSIC.width}
       height={INTRINSIC.height}
       className={`${sizeClasses[size]} max-w-full object-contain object-left ${className}`.trim()}
-      sizes="(max-width: 640px) 188px, (max-width: 768px) 200px, 240px"
+      sizes="(max-width: 640px) 180px, (max-width: 768px) 196px, 208px"
       priority={priority}
     />
   );
