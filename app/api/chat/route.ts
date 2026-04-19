@@ -115,24 +115,24 @@ export async function POST(request: NextRequest) {
 
   const knownIntent = parsed.data.intent ?? {};
   const intentMemory = [
-    `Known destination: ${knownIntent.destination ?? "unknown"}`,
+    `Known destination slug or name: ${knownIntent.destination ?? "unknown"}`,
     `Known durationDays: ${knownIntent.durationDays ?? "unknown"}`,
     `Known dataPersona: ${knownIntent.dataPersona ?? "unknown"}`,
   ].join("\n");
 
+  const systemWithMemory = `${SYSTEM_PROMPT}
+
+---
+Session memory (do not read aloud verbatim; use it to avoid re-asking):
+${intentMemory}
+---`;
+
   const result = streamText({
     model: openai(process.env.OPENAI_MODEL ?? "gpt-4o"),
-    system: SYSTEM_PROMPT,
+    system: systemWithMemory,
     temperature: 0.3,
     stopWhen: stepCountIs(8),
-    messages: [
-      {
-        role: "system" as const,
-        content: `Persist and reuse this extracted state. Do not ask for known fields again.\n${intentMemory}`,
-      },
-      ...historyMessages,
-      { role: "user" as const, content: parsed.data.message },
-    ],
+    messages: [...historyMessages, { role: "user" as const, content: parsed.data.message }],
     tools: { get_plans: getPlans },
   });
 

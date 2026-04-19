@@ -293,7 +293,12 @@ export const getPlansForPersonaFromDb = async (
     return plan.dataGb === 999;
   });
 
-  return filtered.slice(0, 3);
+  if (filtered.length > 0) {
+    return filtered.slice(0, 3);
+  }
+
+  // Catalog gap, empty table, or filters too strict — fall back to deterministic mock data.
+  return getMockPlansForPersona(countrySlug, durationDays, dataPersona);
 };
 
 export const resolveCountrySlugFromInput = async (destination: string) => {
