@@ -21,6 +21,8 @@ const createId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
 
 const destinationSuggestions = ["Japan", "Thailand", "Europe", "United States"];
 
+const TIMEFRAME_CHIPS = ["3 days", "7 days", "14 days", "30 days"] as const;
+
 type NdjsonEvent =
   | { type: "text"; delta: string }
   | { type: "done"; text: string; plans: Plan[]; intent: WizardIntent }
@@ -51,6 +53,10 @@ export const ChatPanel = ({ initialDestination, onResultsChange }: ChatPanelProp
   }, [intent.destination]);
 
   const progress = useMemo(() => intentProgress(intent, destinationLabel), [intent, destinationLabel]);
+
+  const hasDestination = Boolean(intent.destination);
+  const hasDuration = Boolean(intent.durationDays);
+  const hasPersona = Boolean(intent.dataPersona);
 
   useEffect(() => {
     onResultsChange?.(plans);
@@ -279,7 +285,7 @@ export const ChatPanel = ({ initialDestination, onResultsChange }: ChatPanelProp
 
       <div className="border-t border-brand-gray-mid/80 bg-white px-4 py-3">
         <div className="mb-2 flex gap-2 overflow-x-auto">
-          {!intent.destination
+          {!hasDestination
             ? destinationSuggestions.map((item) => (
                 <button
                   key={item}
@@ -292,39 +298,57 @@ export const ChatPanel = ({ initialDestination, onResultsChange }: ChatPanelProp
                   {item}
                 </button>
               ))
-            : !intent.dataPersona
-              ? DATA_PERSONA_CHIPS.map((item) => (
-                  <button
-                    key={item}
-                    type="button"
-                    onClick={() => {
-                      void submitUserMessage(item);
-                    }}
-                    className="whitespace-nowrap rounded-full border border-brand-navy/15 bg-white px-3 py-1.5 text-xs font-medium text-brand-navy transition hover:bg-brand-gray-light"
-                  >
-                    {item}
-                  </button>
-                ))
-              : ["Start new search"].map((item) => (
-                  <button
-                    key={item}
-                    type="button"
-                    onClick={() => {
-                      setIntent({});
-                      setPlans([]);
-                      setMessages([
-                        {
-                          id: createId(),
-                          role: "assistant",
-                          content: "New search started. Where are you flying to next?",
-                        },
-                      ]);
-                    }}
-                    className="whitespace-nowrap rounded-full border border-brand-navy/15 bg-white px-3 py-1.5 text-xs font-medium text-brand-navy transition hover:bg-brand-gray-light"
-                  >
-                    {item}
-                  </button>
-                ))}
+            : null}
+          {hasDestination && !hasDuration
+            ? TIMEFRAME_CHIPS.map((item) => (
+                <button
+                  key={item}
+                  type="button"
+                  onClick={() => {
+                    void submitUserMessage(item);
+                  }}
+                  className="whitespace-nowrap rounded-full border border-brand-navy/15 bg-white px-3 py-1.5 text-xs font-medium text-brand-navy transition hover:bg-brand-gray-light"
+                >
+                  {item}
+                </button>
+              ))
+            : null}
+          {hasDestination && hasDuration && !hasPersona
+            ? DATA_PERSONA_CHIPS.map((item) => (
+                <button
+                  key={item}
+                  type="button"
+                  onClick={() => {
+                    void submitUserMessage(item);
+                  }}
+                  className="whitespace-nowrap rounded-full border border-brand-navy/15 bg-white px-3 py-1.5 text-xs font-medium text-brand-navy transition hover:bg-brand-gray-light"
+                >
+                  {item}
+                </button>
+              ))
+            : null}
+          {hasDestination && hasDuration && hasPersona
+            ? ["Start new search"].map((item) => (
+                <button
+                  key={item}
+                  type="button"
+                  onClick={() => {
+                    setIntent({});
+                    setPlans([]);
+                    setMessages([
+                      {
+                        id: createId(),
+                        role: "assistant",
+                        content: "New search started. Where are you flying to next?",
+                      },
+                    ]);
+                  }}
+                  className="whitespace-nowrap rounded-full border border-brand-navy/15 bg-white px-3 py-1.5 text-xs font-medium text-brand-navy transition hover:bg-brand-gray-light"
+                >
+                  {item}
+                </button>
+              ))
+            : null}
         </div>
         <div className="flex gap-2">
           <input

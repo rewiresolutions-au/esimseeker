@@ -42,7 +42,7 @@ export const EsimSeekerLogo = ({
       alt="eSIMSeeker"
       width={INTRINSIC.width}
       height={INTRINSIC.height}
-      className={`${sizeClasses[size]} max-w-full object-contain object-left ${className}`.trim()}
+      className={`${sizeClasses[size]} max-w-full bg-transparent object-contain object-left ${className}`.trim()}
       sizes="(max-width: 640px) 180px, (max-width: 768px) 196px, 208px"
       priority={priority}
     />
@@ -55,7 +55,7 @@ export const EsimSeekerLogo = ({
   return (
     <Link
       href={href}
-      className="inline-flex shrink-0 items-center rounded-sm py-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-teal focus-visible:ring-offset-2"
+      className="inline-flex shrink-0 items-center rounded-sm bg-transparent py-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-teal focus-visible:ring-offset-2"
     >
       {img}
     </Link>
