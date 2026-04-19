@@ -2,12 +2,13 @@ import Image from "next/image";
 import Link from "next/link";
 
 const SRC = {
-  onLight: "/brand/esimseeker_logo_final.png",
+  /** PNG wordmark for light UI (header/footer on pale backgrounds). */
+  onLight: "/brand/logo_primary_light.png",
   onDark: "/brand/logo_dark_mode.png",
 } as const;
 
-/** Intrinsic dimensions from source PNG (IHDR); layout uses width-first so the wordmark stays legible. */
-const INTRINSIC = { width: 1024, height: 683 };
+/** Intrinsic dimensions from source PNGs (IHDR); layout uses width-first so the wordmark stays legible. */
+const INTRINSIC = { width: 2528, height: 1696 };
 
 const sizeClasses = {
   /** Main site header — width-led so the logo is not shrunk to a short strip */
