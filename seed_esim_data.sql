@@ -1,11 +1,13 @@
 -- eSIMSeeker seed data for wizard QA flow
 -- Adapted to the current schema (countries.iso_code, plans.country_iso, plans.validity_days).
 
--- 0) Ensure destination exists
+-- 0) Ensure destinations exist
 INSERT INTO countries (name, iso_code, region)
 VALUES
   ('Australia', 'AU', 'Oceania'),
-  ('United Kingdom', 'GB', 'Europe')
+  ('United Kingdom', 'GB', 'Europe'),
+  ('Japan', 'JP', 'Asia'),
+  ('Thailand', 'TH', 'Asia')
 ON CONFLICT (iso_code) DO UPDATE
 SET name = EXCLUDED.name,
     region = EXCLUDED.region;
@@ -22,7 +24,7 @@ SET name = EXCLUDED.name,
     base_commission_pct = EXCLUDED.base_commission_pct,
     affiliate_platform = EXCLUDED.affiliate_platform;
 
--- 2) Plans for AU + GB (Budget/Balanced/Heavy/Unlimited coverage)
+-- 2) Plans for AU + GB + JP + TH (including Unlimited coverage)
 INSERT INTO plans (
   id, provider_id, country_iso, data_gb, validity_days, price_usd, network_type, buy_url, supports_voice
 )
@@ -48,7 +50,15 @@ VALUES
   ('dddddddd-dddd-dddd-dddd-dddddddddd10', '11111111-1111-1111-1111-111111111111', 'GB', 10, 30, 22.50, '4G/5G', 'https://www.airalo.com/', false),
 
   -- UK Unlimited (Holafly)
-  ('eeeeeeee-eeee-eeee-eeee-eeeeeeeeee15', '22222222-2222-2222-2222-222222222222', 'GB', 999, 15, 47.00, '4G/5G', 'https://esim.holafly.com/', false)
+  ('eeeeeeee-eeee-eeee-eeee-eeeeeeeeee15', '22222222-2222-2222-2222-222222222222', 'GB', 999, 15, 47.00, '4G/5G', 'https://esim.holafly.com/', false),
+
+  -- Japan Unlimited (Holafly)
+  ('ffffffff-ffff-ffff-ffff-ffffffff0015', '22222222-2222-2222-2222-222222222222', 'JP', 999, 15, 47.00, '4G/5G', 'https://esim.holafly.com/', false),
+  ('ffffffff-ffff-ffff-ffff-ffffffff0030', '22222222-2222-2222-2222-222222222222', 'JP', 999, 30, 75.00, '4G/5G', 'https://esim.holafly.com/', false),
+
+  -- Thailand Unlimited (Holafly)
+  ('99999999-9999-9999-9999-999999990015', '22222222-2222-2222-2222-222222222222', 'TH', 999, 15, 47.00, '4G/5G', 'https://esim.holafly.com/', false),
+  ('99999999-9999-9999-9999-999999990030', '22222222-2222-2222-2222-222222222222', 'TH', 999, 30, 75.00, '4G/5G', 'https://esim.holafly.com/', false)
 ON CONFLICT (id) DO UPDATE
 SET provider_id = EXCLUDED.provider_id,
     country_iso = EXCLUDED.country_iso,
