@@ -17,6 +17,11 @@ type SailyAffiliateConfig = {
   partnerId: string;
   campaignId?: string;
   defaultCouponCode?: string;
+  /**
+   * Optional full TUNE click URL. If set, Saily links will route through TUNE click tracking
+   * and carry plan/destination in aff_sub parameters.
+   */
+  tuneClickUrl?: string;
 };
 
 const getSailyAffiliateConfig = (): SailyAffiliateConfig => {
@@ -25,6 +30,7 @@ const getSailyAffiliateConfig = (): SailyAffiliateConfig => {
     partnerId: process.env.SAILY_AFFILIATE_PARTNER_ID ?? "",
     campaignId: process.env.SAILY_AFFILIATE_CAMPAIGN_ID,
     defaultCouponCode: process.env.SAILY_DEFAULT_COUPON_CODE,
+    tuneClickUrl: process.env.SAILY_TUNE_CLICK_URL,
   };
 };
 
@@ -37,7 +43,27 @@ export const buildSailyAffiliateUrl = (params?: {
   utmCampaign?: string;
 }) => {
   const config = getSailyAffiliateConfig();
-  const url = new URL(config.baseUrl);
+  const hasTuneClickUrl = Boolean(config.tuneClickUrl);
+  const url = new URL(config.tuneClickUrl ?? config.baseUrl);
+
+  if (hasTuneClickUrl) {
+    // TUNE sub IDs allow us to segment conversions by destination and specific plan.
+    if (params?.planId) {
+      url.searchParams.set("aff_sub", params.planId);
+    }
+    if (params?.destination) {
+      url.searchParams.set("aff_sub2", params.destination);
+    }
+    const coupon = params?.couponCode ?? config.defaultCouponCode;
+    if (coupon) {
+      url.searchParams.set("aff_sub3", coupon);
+    }
+
+    if (params?.utmSource) url.searchParams.set("utm_source", params.utmSource);
+    if (params?.utmMedium) url.searchParams.set("utm_medium", params.utmMedium);
+    if (params?.utmCampaign) url.searchParams.set("utm_campaign", params.utmCampaign);
+    return url.toString();
+  }
 
   if (config.partnerId) {
     url.searchParams.set("partner_id", config.partnerId);
