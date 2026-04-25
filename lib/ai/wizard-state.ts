@@ -1,5 +1,5 @@
 import { COUNTRIES } from "@/lib/data/countries";
-import type { DataPersona, WizardIntent } from "@/lib/types/plans";
+import type { DataPersona, Plan, WizardIntent } from "@/lib/types/plans";
 
 export type ChatRole = "assistant" | "user";
 
@@ -7,6 +7,8 @@ export type ChatMessage = {
   id: string;
   role: ChatRole;
   content: string;
+  /** Plans recommended alongside this assistant message */
+  plans?: Plan[];
 };
 
 export const DATA_PERSONA_CHIPS: DataPersona[] = [
@@ -57,8 +59,11 @@ export const nextAssistantPrompt = (intent: WizardIntent): string => {
   return "Here are your top matches based on your trip. I can refine these if you want.";
 };
 
-export const intentProgress = (intent: WizardIntent) => [
-  { label: intent.destination ? intent.destination : "Destination", done: Boolean(intent.destination) },
+export const intentProgress = (intent: WizardIntent, destinationLabel?: string) => [
+  {
+    label: intent.destination ? (destinationLabel ?? intent.destination) : "Destination",
+    done: Boolean(intent.destination),
+  },
   { label: intent.durationDays ? `${intent.durationDays} days` : "Duration", done: Boolean(intent.durationDays) },
-  { label: intent.dataPersona ? intent.dataPersona : "Data usage", done: Boolean(intent.dataPersona) },
+  { label: intent.dataPersona ? intent.dataPersona : "Data need", done: Boolean(intent.dataPersona) },
 ];

@@ -5,6 +5,7 @@ import { DestinationGrid } from "@/components/marketing/DestinationGrid";
 import { Hero } from "@/components/marketing/Hero";
 import { HowItWorks } from "@/components/marketing/HowItWorks";
 import { ProviderStrip } from "@/components/marketing/ProviderStrip";
+import { AiraloPartnerBanner } from "@/components/marketing/AiraloPartnerBanner";
 import { TrustBanner } from "@/components/marketing/TrustBanner";
 
 export const generateMetadata = async (): Promise<Metadata> => {
@@ -26,6 +27,7 @@ export default function HomePage() {
           <ProviderStrip />
         </section>
         <HowItWorks />
+        <AiraloPartnerBanner />
         <DestinationGrid />
         <TrustBanner />
       </main>

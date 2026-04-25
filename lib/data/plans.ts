@@ -84,7 +84,7 @@ export const getFilteredPlans = (
 
   if (options?.durationDays) {
     const durationDays = options.durationDays;
-    filtered = filtered.filter((plan) => plan.durationDays === durationDays);
+    filtered = filtered.filter((plan) => plan.durationDays >= durationDays);
   }
   if (options?.minDataGb) {
     const minDataGb = options.minDataGb;
@@ -111,16 +111,15 @@ export const getPlansForPersona = (
   durationDays: number,
   dataPersona: DataPersona,
 ) => {
-  const minDataGbByPersona: Record<DataPersona, number> = {
-    Budget: 3,
-    Balanced: 5,
-    Heavy: 10,
-    Unlimited: 20,
-  };
-  const minimumData = minDataGbByPersona[dataPersona];
-  return getFilteredPlans(countrySlug, {
+  const plans = getFilteredPlans(countrySlug, {
     durationDays,
-    minDataGb: minimumData,
     sortBy: dataPersona === "Budget" ? "price-asc" : "rating-desc",
-  }).slice(0, 3);
+  });
+  const filtered = plans.filter((plan) => {
+    if (dataPersona === "Budget") return plan.dataGb <= 5;
+    if (dataPersona === "Balanced") return plan.dataGb > 5 && plan.dataGb <= 15;
+    if (dataPersona === "Heavy") return plan.dataGb > 15 && plan.dataGb < 999;
+    return plan.dataGb === 999;
+  });
+  return filtered.slice(0, 3);
 };
