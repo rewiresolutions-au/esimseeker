@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Footer } from "@/components/layout/Footer";
 import { Navbar } from "@/components/layout/Navbar";
 import { PageHero } from "@/components/layout/PageHero";
+import { COMPANY } from "@/lib/content/company";
 
 export const generateMetadata = async (): Promise<Metadata> => ({
   title: "Affiliate Disclosure - eSIMSeeker",
@@ -23,6 +24,9 @@ export default function AffiliateDisclosurePage() {
           <p>
             Rankings are based on pricing, network quality, plan structure, and user value. Affiliate
             availability does not override quality-based recommendation logic.
+          </p>
+          <p className="mt-3">
+            {`${COMPANY.tradingName} is operated by ${COMPANY.legalName} (ABN ${COMPANY.abn}) in ${COMPANY.registeredState}, ${COMPANY.registeredCountry}.`}
           </p>
         </article>
       </main>

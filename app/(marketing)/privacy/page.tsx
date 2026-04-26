@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Footer } from "@/components/layout/Footer";
 import { Navbar } from "@/components/layout/Navbar";
 import { PageHero } from "@/components/layout/PageHero";
+import { COMPANY } from "@/lib/content/company";
 
 export const generateMetadata = async (): Promise<Metadata> => ({
   title: "Privacy Policy - eSIMSeeker",
@@ -23,6 +24,9 @@ export default function PrivacyPage() {
           <p>
             We use essential analytics and session data to improve search quality and understand which
             pages are most useful to travelers. We do not sell personal data.
+          </p>
+          <p className="mt-3">
+            {`${COMPANY.tradingName} is operated by ${COMPANY.legalName} (ABN ${COMPANY.abn}) in ${COMPANY.registeredState}, ${COMPANY.registeredCountry}.`}
           </p>
         </article>
       </main>
