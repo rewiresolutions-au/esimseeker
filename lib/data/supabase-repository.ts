@@ -8,6 +8,7 @@ import {
   getPlansForPersona as getMockPlansForPersona,
   getTopPlansForCountry as getMockTopPlansForCountry,
 } from "@/lib/data/plans";
+import { getSailyPlansForCountryFromApi } from "@/lib/partners/saily-api";
 import { createSupabaseServerClient, isSupabaseConfigured } from "@/lib/supabase/server";
 import type { Country, DataPersona, Plan, Region, RegionSlug } from "@/lib/types/plans";
 
@@ -227,41 +228,83 @@ export const getPlansByCountryFromDb = async (
     }
 
     const providers = providerRows as ProviderRow[];
-    let providerIdFilter: string | undefined;
-    if (options?.provider) {
-      providerIdFilter = providers.find((item) => item.name === options.provider)?.id;
-      if (!providerIdFilter) return [];
+    const sailyProviderId = providers.find((item) => item.name.toLowerCase() === "saily")?.id;
+    const providerFilter = options?.provider?.trim().toLowerCase();
+    const wantsOnlySaily = providerFilter === "saily";
+    const wantsOnlyDbProvider = Boolean(providerFilter && providerFilter !== "saily");
+
+    let dbPlans: Plan[] = [];
+    if (!wantsOnlySaily) {
+      let providerIdFilter: string | undefined;
+      if (wantsOnlyDbProvider) {
+        providerIdFilter = providers.find((item) => item.name.toLowerCase() === providerFilter)?.id;
+        if (!providerIdFilter) return [];
+      }
+
+      let query = supabase
+        .from("plans")
+        .select("id, provider_id, country_iso, data_gb, validity_days, price_usd, supports_voice, network_type, buy_url")
+        .eq("country_iso", country.isoCode);
+
+      if (options?.durationDays) {
+        // A plan is valid if it covers at least the requested trip length.
+        query = query.gte("validity_days", options.durationDays);
+      }
+      if (options?.minDataGb) {
+        query = query.gte("data_gb", options.minDataGb);
+      }
+      if (providerIdFilter) {
+        query = query.eq("provider_id", providerIdFilter);
+      } else if (sailyProviderId) {
+        // Saily must come from live API, not from static DB rows.
+        query = query.neq("provider_id", sailyProviderId);
+      }
+
+      const { data: planRows, error: plansError } = await query;
+      if (plansError || !planRows) {
+        return getMockFilteredPlans(countrySlug, options);
+      }
+
+      const providerNameById = new Map(providers.map((provider) => [provider.id, provider.name]));
+      dbPlans = (planRows as PlanRow[]).map((row) => {
+        const providerName = providerNameById.get(row.provider_id) ?? "eSIM Go";
+        return mapPlanRow(row, country.slug, providerName);
+      });
     }
 
-    let query = supabase
-      .from("plans")
-      .select("id, provider_id, country_iso, data_gb, validity_days, price_usd, supports_voice, network_type, buy_url")
-      .eq("country_iso", country.isoCode);
+    const shouldIncludeSaily = !providerFilter || providerFilter === "saily";
+    let sailyPlans: Plan[] = [];
+    if (shouldIncludeSaily) {
+      sailyPlans = await getSailyPlansForCountryFromApi(country.slug, country.isoCode);
+      if (sailyPlans.length === 0 && sailyProviderId) {
+        // API first for Saily; if no rows are returned, fall back to catalog Saily rows in Supabase.
+        let sailyQuery = supabase
+          .from("plans")
+          .select("id, provider_id, country_iso, data_gb, validity_days, price_usd, supports_voice, network_type, buy_url")
+          .eq("country_iso", country.isoCode)
+          .eq("provider_id", sailyProviderId);
+        if (options?.durationDays) {
+          sailyQuery = sailyQuery.gte("validity_days", options.durationDays);
+        }
+        if (options?.minDataGb) {
+          sailyQuery = sailyQuery.gte("data_gb", options.minDataGb);
+        }
+        const { data: sailyRows } = await sailyQuery;
+        sailyPlans = (sailyRows as PlanRow[] | null | undefined)?.map((row) => mapPlanRow(row, country.slug, "Saily")) ?? [];
+      }
+      if (options?.durationDays) {
+        sailyPlans = sailyPlans.filter((plan) => plan.durationDays >= options.durationDays!);
+      }
+      if (options?.minDataGb) {
+        sailyPlans = sailyPlans.filter((plan) => plan.dataGb >= options.minDataGb!);
+      }
+    }
 
-    if (options?.durationDays) {
-      // A plan is valid if it covers at least the requested trip length.
-      query = query.gte("validity_days", options.durationDays);
-    }
-    if (options?.minDataGb) {
-      query = query.gte("data_gb", options.minDataGb);
-    }
-    if (providerIdFilter) {
-      query = query.eq("provider_id", providerIdFilter);
-    }
-
-    const { data: planRows, error: plansError } = await query;
-    if (plansError || !planRows) {
+    const merged = [...dbPlans, ...sailyPlans];
+    if (merged.length === 0 && !providerFilter) {
       return getMockFilteredPlans(countrySlug, options);
     }
-
-    const providerNameById = new Map(providers.map((provider) => [provider.id, provider.name]));
-
-    const mapped = (planRows as PlanRow[]).map((row) => {
-      const providerName = providerNameById.get(row.provider_id) ?? "eSIM Go";
-      return mapPlanRow(row, country.slug, providerName);
-    });
-
-    return sortPlans(mapped, options?.sortBy);
+    return sortPlans(merged, options?.sortBy);
   } catch {
     return getMockFilteredPlans(countrySlug, options);
   }

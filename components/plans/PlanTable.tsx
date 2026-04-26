@@ -95,7 +95,7 @@ export const PlanTable = ({ plans }: PlanTableProps) => {
           </thead>
           <tbody>
             {sorted.map((plan) => (
-              <tr key={plan.id} className="border-t border-brand-navy/10">
+              <tr key={plan.id} data-plan-row className="border-t border-brand-navy/10">
                 <td className="px-4 py-3 font-semibold text-brand-navy">
                   {plan.provider}{" "}
                   {plan.id === cheapestId ? (

@@ -37,7 +37,12 @@ export const generateMetadata = async ({ params }: DestinationCountryPageProps):
     };
   }
 
-  const plans = await getPlansByCountryFromDb(country.slug, { sortBy: "price-asc" });
+  let plans = [] as Awaited<ReturnType<typeof getPlansByCountryFromDb>>;
+  try {
+    plans = await getPlansByCountryFromDb(country.slug, { sortBy: "price-asc" });
+  } catch {
+    plans = [];
+  }
   const lowestPrice = plans[0]?.priceUsd ?? 0;
   const year = new Date().getFullYear();
   const title = `Best eSIMs for ${country.name} in ${year} | Compare plans - eSIMSeeker`;
@@ -65,8 +70,18 @@ export default async function DestinationCountryPage({ params }: DestinationCoun
   const country = await getCountryBySlugFromDb(countrySlug);
   if (!country) notFound();
 
-  const plans = await getPlansByCountryFromDb(country.slug, { sortBy: "price-asc" });
-  const topPlans = (await getTopPlansForCountryFromDb(country.slug)).slice(0, 5);
+  let plans = [] as Awaited<ReturnType<typeof getPlansByCountryFromDb>>;
+  let topPlans = [] as Awaited<ReturnType<typeof getTopPlansForCountryFromDb>>;
+  let plansLoadFailed = false;
+  try {
+    plans = await getPlansByCountryFromDb(country.slug, { sortBy: "price-asc" });
+    topPlans = (await getTopPlansForCountryFromDb(country.slug)).slice(0, 5);
+  } catch {
+    // Never 500 destination pages for crawlers; render with explicit empty/error state instead.
+    plansLoadFailed = true;
+    plans = [];
+    topPlans = [];
+  }
   const lowestPrice = plans[0]?.priceUsd ?? 0;
   const year = new Date().getFullYear();
 
@@ -144,18 +159,26 @@ export default async function DestinationCountryPage({ params }: DestinationCoun
           }
           title={`Best eSIMs for ${country.name} in ${year}`}
           titleClassName="font-heading text-3xl md:text-4xl lg:text-[2.75rem] lg:leading-tight"
-          description={`Compare ${plans.length} plans from top providers. From $${lowestPrice} USD. Updated regularly—verify final price before you buy.`}
+          description={
+            plansLoadFailed
+              ? "Compare plans from top providers. We are having trouble loading live plan rows right now."
+              : `Compare ${plans.length} plans from top providers. From $${lowestPrice} USD. Updated regularly—verify final price before you buy.`
+          }
         >
           <div className="flex flex-wrap gap-2 text-xs">
             <span className="rounded-full bg-brand-gray-light px-3 py-1 text-brand-navy ring-1 ring-brand-navy/10">
               {country.flagEmoji} {country.name}
             </span>
-            <span className="rounded-full bg-brand-gray-light px-3 py-1 text-brand-navy ring-1 ring-brand-navy/10">
-              {plans.length} plans
-            </span>
-            <span className="rounded-full bg-brand-gray-light px-3 py-1 text-brand-navy ring-1 ring-brand-navy/10">
-              From ${lowestPrice}
-            </span>
+            {!plansLoadFailed ? (
+              <>
+                <span className="rounded-full bg-brand-gray-light px-3 py-1 text-brand-navy ring-1 ring-brand-navy/10">
+                  {plans.length} plans
+                </span>
+                <span className="rounded-full bg-brand-gray-light px-3 py-1 text-brand-navy ring-1 ring-brand-navy/10">
+                  From ${lowestPrice}
+                </span>
+              </>
+            ) : null}
           </div>
           <Link
             href={`/wizard?destination=${encodeURIComponent(country.name)}`}
@@ -172,7 +195,12 @@ export default async function DestinationCountryPage({ params }: DestinationCoun
             </h2>
             <p className="text-sm text-brand-navy/65">Click a column header to sort. Filters refetch plans from our catalog.</p>
           </div>
-          <CountryPlansSection countrySlug={country.slug} />
+          <CountryPlansSection
+            countrySlug={country.slug}
+            countryName={country.name}
+            initialPlans={plans}
+            initialLoadError={plansLoadFailed}
+          />
         </section>
 
         <AIBanner destination={country.name} />
