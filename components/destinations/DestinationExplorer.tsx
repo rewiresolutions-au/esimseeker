@@ -43,18 +43,23 @@ export const DestinationExplorer = () => {
 
   return (
     <section className="space-y-4">
-      <input
-        value={query}
-        onChange={(event) => setQuery(event.target.value)}
-        placeholder="Search country"
-        className="h-11 w-full rounded-lg border border-brand-navy/20 bg-white px-4 text-sm"
-      />
+      <div className="relative">
+        <input
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          placeholder="Search a country..."
+          className="h-12 w-full rounded-full border border-brand-navy/20 bg-white px-5 pr-14 text-sm"
+        />
+        <span className="absolute right-2 top-1/2 inline-flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-brand-red text-white">
+          ⌕
+        </span>
+      </div>
       <RegionTabs regions={regions} value={region} onChange={setRegion} />
       <CountryGrid countries={visible} />
       {!showAll && filtered.length > visible.length ? (
         <button
           onClick={() => setShowAll(true)}
-          className="rounded-lg border border-brand-navy/20 bg-white px-4 py-2 text-sm font-medium text-brand-navy"
+          className="w-full rounded-full bg-brand-red px-4 py-3 text-sm font-semibold text-white"
         >
           Load All Countries
         </button>

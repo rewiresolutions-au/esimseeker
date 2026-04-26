@@ -56,6 +56,10 @@ export async function GET(request: NextRequest) {
     sortBy,
   });
 
-  const safePlans = plans.length > 0 ? plans : await getAnyPlansFallback(countrySlug);
+  const shouldFallbackToAnyPlans = !provider && !durationDays && !minDataGb;
+  const safePlans =
+    plans.length > 0 || !shouldFallbackToAnyPlans
+      ? plans
+      : await getAnyPlansFallback(countrySlug);
   return NextResponse.json({ plans: safePlans, countrySlug });
 }

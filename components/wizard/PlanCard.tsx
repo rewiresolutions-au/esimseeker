@@ -31,10 +31,13 @@ export const PlanCard = ({ plan, reason }: PlanCardProps) => {
         ) : null}
       </div>
 
-      <div className="mt-4 grid grid-cols-3 gap-2 rounded-lg bg-brand-paper p-3 text-center">
+      <div className="mt-4 border-y border-brand-navy/15 py-3">
+        <div className="grid grid-cols-3 gap-2 text-center">
         <div>
           <p className="text-xs text-brand-navy/70">Data</p>
-          <p className="text-sm font-semibold text-brand-navy">{plan.dataGb} GB</p>
+          <p className="text-sm font-semibold text-brand-navy">
+            {plan.dataGb >= 999 ? "Unlimited" : `${plan.dataGb} GB`}
+          </p>
         </div>
         <div>
           <p className="text-xs text-brand-navy/70">Duration</p>
@@ -43,6 +46,7 @@ export const PlanCard = ({ plan, reason }: PlanCardProps) => {
         <div>
           <p className="text-xs text-brand-navy/70">Price</p>
           <p className="text-sm font-semibold text-brand-navy">${plan.priceUsd}</p>
+        </div>
         </div>
       </div>
 
@@ -54,7 +58,7 @@ export const PlanCard = ({ plan, reason }: PlanCardProps) => {
         rel="noreferrer"
         className="mt-4 inline-flex h-10 w-full items-center justify-center rounded-lg bg-brand-red text-sm font-semibold text-white transition hover:bg-brand-red/90"
       >
-        Get This Plan
+        Get Plan
       </a>
     </article>
   );

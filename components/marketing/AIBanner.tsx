@@ -10,19 +10,23 @@ export const AIBanner = ({ destination }: AIBannerProps) => {
     : "/wizard";
 
   return (
-    <section className="rounded-2xl border border-brand-red/20 bg-brand-red/5 p-6">
-      <p className="text-sm font-semibold text-brand-red">Not sure which plan to pick?</p>
-      <h2 className="mt-2 text-xl font-bold text-brand-navy">
-        Let our AI recommend the best option for your trip.
+    <section
+      className="rounded-2xl border border-brand-red/25 bg-gradient-to-br from-brand-red/10 to-brand-red/5 p-6 md:p-8"
+      aria-labelledby="ai-banner-heading"
+    >
+      <p className="text-sm font-semibold uppercase tracking-wide text-brand-red">AI help</p>
+      <h2 id="ai-banner-heading" className="font-heading mt-2 text-2xl font-semibold text-brand-navy md:text-3xl">
+        Not sure which to pick? Ask our AI Wizard
       </h2>
-      <p className="mt-2 text-brand-navy/70">
-        We consider your destination, trip duration, and usage style in seconds.
+      <p className="mt-2 max-w-2xl text-brand-navy/75">
+        Tell us your destination, how long you are away, and how you use data—we will shortlist plans that fit, in one
+        conversation.
       </p>
       <Link
         href={href}
-        className="mt-4 inline-flex h-10 items-center rounded-lg bg-brand-navy px-4 text-sm font-semibold text-white transition hover:bg-brand-navy/90"
+        className="mt-5 inline-flex h-11 items-center rounded-lg bg-brand-navy px-5 text-sm font-semibold text-white transition hover:bg-brand-navy/90"
       >
-        Chat with AI
+        Open AI Wizard
       </Link>
     </section>
   );
