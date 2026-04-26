@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Footer } from "@/components/layout/Footer";
 import { Navbar } from "@/components/layout/Navbar";
 import { PageHero } from "@/components/layout/PageHero";
+import { COMPANY } from "@/lib/content/company";
 
 export const generateMetadata = async (): Promise<Metadata> => ({
   title: "Terms of Use - eSIMSeeker",
@@ -23,6 +24,9 @@ export default function TermsPage() {
           <p>
             Information on this website is provided for comparison purposes and may change without notice.
             Always verify provider terms before checkout.
+          </p>
+          <p className="mt-3">
+            {`${COMPANY.tradingName} is operated by ${COMPANY.legalName} (ABN ${COMPANY.abn}) in ${COMPANY.registeredState}, ${COMPANY.registeredCountry}.`}
           </p>
         </article>
       </main>

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { COMPANY } from "@/lib/content/company";
 
 const navLinks = [
   { href: "/", label: "Home" },
@@ -14,11 +15,13 @@ const legalLinks = [
 ];
 
 export const Footer = () => {
+  const year = new Date().getFullYear();
+
   return (
     <footer className="mt-16 bg-brand-navy py-12 text-brand-slate">
       <div className="mx-auto grid w-full max-w-7xl gap-10 px-4 md:grid-cols-4">
         <div>
-          <p className="text-lg font-bold text-white">eSIMSeeker</p>
+          <p className="text-lg font-bold text-white">{COMPANY.tradingName}</p>
           <p className="mt-3 text-sm text-brand-slate/90">
             Stay Connected. Anywhere. Instantly.
           </p>
@@ -52,9 +55,14 @@ export const Footer = () => {
             Get destination data price drops and new provider updates.
           </p>
           <div className="mt-3 rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-sm">
-            hello@esimseeker.com
+            <a href={`mailto:${COMPANY.contactEmail}`} className="hover:text-white">
+              {COMPANY.contactEmail}
+            </a>
           </div>
         </div>
+      </div>
+      <div className="mx-auto mt-8 w-full max-w-7xl px-4 text-xs text-brand-slate/80">
+        {`© ${year} ${COMPANY.tradingName}. Operated by ${COMPANY.legalName} (ABN ${COMPANY.abn}).`}
       </div>
     </footer>
   );

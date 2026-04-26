@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Footer } from "@/components/layout/Footer";
 import { Navbar } from "@/components/layout/Navbar";
 import { PageHero } from "@/components/layout/PageHero";
+import { COMPANY } from "@/lib/content/company";
 
 export const generateMetadata = async (): Promise<Metadata> => ({
   title: "Contact eSIMSeeker",
@@ -37,7 +38,9 @@ export default function ContactPage() {
           <aside className="space-y-4 rounded-xl border border-brand-navy/10 bg-white p-5">
             <div>
               <p className="text-sm font-semibold text-brand-navy">Email</p>
-              <p className="text-sm text-brand-navy/75">hello@esimseeker.com</p>
+              <a href={`mailto:${COMPANY.contactEmail}`} className="text-sm text-brand-teal hover:underline">
+                {COMPANY.contactEmail}
+              </a>
             </div>
             <div>
               <p className="text-sm font-semibold text-brand-navy">Response time</p>
